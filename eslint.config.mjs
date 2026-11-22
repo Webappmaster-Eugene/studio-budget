@@ -1,7 +1,7 @@
 import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTypescript from 'eslint-config-next/typescript'
 
-export default [
+const config = [
   { ignores: ['.next/**', 'next-env.d.ts', 'playwright-report/**', 'test-results/**'] },
   ...nextVitals,
   ...nextTypescript,
@@ -13,3 +13,5 @@ export default [
     },
   },
 ]
+
+export default config
