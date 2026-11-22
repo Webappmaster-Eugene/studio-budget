@@ -29,7 +29,7 @@ test('показывает отсутствие расходов, затем с�
   await page.route('**/api/report?*', (route) => route.abort())
   await page.getByLabel('Дата отчёта').fill('2026-09-02')
   await page.getByRole('button', { name: 'Построить отчёт' }).click()
-  await expect(page.getByRole('alert')).toContainText('Не удалось обновить отчёт.')
+  await expect(page.getByRole('alert').filter({ hasText: 'Не удалось обновить отчёт.' })).toBeVisible()
   await expect(page.locator('time')).toHaveAttribute('datetime', '2026-09-01')
 })
 

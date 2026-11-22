@@ -162,7 +162,10 @@ tbody tr:last-child > * { border-bottom: 0; }
   fieldset { grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; }
   .field:first-of-type { grid-column: 1 / -1; }
   .report-heading { display: block; }
-  .totals dt { font-size: .72rem; }
+  .totals dt { min-block-size: 2.7em; font-size: .72rem; }
+  table { font-size: .8rem; }
+  thead { font-size: .73rem; }
+  tr > :first-child { width: 34%; }
 }
 
 @media (max-width: 24rem) {
