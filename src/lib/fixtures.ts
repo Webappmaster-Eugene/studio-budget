@@ -20,7 +20,7 @@ export const initialDate = '2026-10-18'
 export const projects: readonly [Project, ...Project[]] = [
   {
     id: 'paper-fair',
-    name: 'Книжная ярмарка «Переплёт»',
+    name: 'Осенняя книжная ярмарка',
     description: 'Концепция, оформление и выпуск материалов для осенней ярмарки.',
     budget: { design: 4_800_000, production: 9_200_000, materials: 2_800_000, logistics: 1_600_000 },
     expenses: [
@@ -35,7 +35,7 @@ export const projects: readonly [Project, ...Project[]] = [
   },
   {
     id: 'bakery-identity',
-    name: 'Айдентика пекарни «Корка»',
+    name: 'Фирменный стиль пекарни',
     description: 'Фирменный стиль, пробный тираж упаковки и доставка образцов.',
     budget: { design: 6_000_000, production: 3_500_000, materials: 1_800_000, logistics: 700_000 },
     expenses: [

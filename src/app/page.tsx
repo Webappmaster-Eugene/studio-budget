@@ -6,10 +6,9 @@ export default function Home() {
   return (
     <>
       <header className="masthead">
-        <div className="frame masthead-inner">
-          <p className="demo-label">Демонстрационные данные</p>
-          <h1>Бюджет студии</h1>
-          <p className="intro">План и оплаченные расходы по проектам на выбранную дату.</p>
+        <div className="frame brand">
+          <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
+          <span>Бюджет проекта</span>
         </div>
       </header>
 

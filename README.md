@@ -1,4 +1,4 @@
-# Бюджет студии
+# Бюджет проекта
 
 Руководитель творческой студии выбирает проект и дату. Приложение показывает
 план, оплаченные расходы и остаток по статьям, включая превышение бюджета.
@@ -37,8 +37,8 @@ Next.js создаёт начальный отчёт на сервере. Пос
 pnpm smoke
 pnpm exec playwright install chromium
 pnpm test:e2e
-docker build -t studio-budget:1.0.0 .
-docker run --rm -p 127.0.0.1:3000:3000 studio-budget:1.0.0
+docker build -t studio-budget:1.1.0 .
+docker run --rm -p 127.0.0.1:3000:3000 studio-budget:1.1.0
 ```
 
 `pnpm smoke` включает lint, проверку типов, тесты расчёта и HTTP API и сборку.

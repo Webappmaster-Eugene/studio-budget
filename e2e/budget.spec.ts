@@ -5,7 +5,9 @@ test('выбирает проект и дату и получает новый �
   page.on('pageerror', (error) => errors.push(error.message))
 
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Книжная ярмарка «Переплёт»' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'План и расходы' })).toBeVisible()
+  await expect(page.getByText('30 749,50 ₽', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Осенняя книжная ярмарка' })).toBeVisible()
   await expect(page.getByRole('row', { name: /Производство/ })).toContainText('−4 500')
 
   await page.getByLabel('Проект', { exact: true }).selectOption('bakery-identity')
@@ -14,8 +16,9 @@ test('выбирает проект и дату и получает новый �
   await page.getByRole('button', { name: 'Построить отчёт' }).press('Enter')
 
   expect((await response).status()).toBe(200)
-  await expect(page.getByRole('heading', { name: 'Айдентика пекарни «Корка»' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Фирменный стиль пекарни' })).toBeVisible()
   await expect(page.getByRole('row', { name: /Производство/ })).toContainText('22 000')
+  await expect(page.getByText('54 499,75 ₽', { exact: true })).toBeVisible()
   await expect(page.locator('time')).toHaveAttribute('datetime', '2026-10-21')
   expect(errors).toEqual([])
 })

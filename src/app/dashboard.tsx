@@ -104,66 +104,76 @@ export function Dashboard({ projects, initialReport }: DashboardProps) {
   }
 
   const { totals } = report
+  const isOverBudget = totals.leftKopecks < 0
+  const spentRatio = totals.budgetKopecks > 0 ? totals.spentKopecks / totals.budgetKopecks : 0
 
   return (
     <>
-      <form className="filters" onSubmit={requestReport}>
-        <fieldset disabled={pending}>
-          <legend className="sr-only">Параметры отчёта</legend>
-          <div className="field">
-            <label htmlFor="project">Проект</label>
-            <select id="project" value={project} onChange={(event) => setProject(event.currentTarget.value)}>
-              {projects.map((entry) => <option value={entry.id} key={entry.id}>{entry.name}</option>)}
-            </select>
-          </div>
-          <div className="field date-field">
-            <label htmlFor="as-of">Дата отчёта</label>
-            <input
-              id="as-of" type="date" value={asOf} required min="0001-01-01" max="9999-12-31"
-              onChange={(event) => setAsOf(event.currentTarget.value)}
-            />
-          </div>
-          <button type="submit">{pending ? 'Обновляем…' : 'Построить отчёт'}</button>
-        </fieldset>
-        {error && <p className="form-error" role="alert">{error}</p>}
-      </form>
+      <section className="overview" aria-labelledby="report-title">
+        <div className="controls">
+          <p className="demo-label">Демонстрационные данные</p>
+          <h1 id="report-title">План и расходы</h1>
+          <p className="intro">Выберите проект и дату, чтобы увидеть, сколько уже оплачено и какой остаток бюджета.</p>
+          <form className="filters" onSubmit={requestReport}>
+            <fieldset disabled={pending}>
+              <legend className="sr-only">Параметры отчёта</legend>
+              <div className="field project-field">
+                <label htmlFor="project">Проект</label>
+                <select id="project" value={project} onChange={(event) => setProject(event.currentTarget.value)}>
+                  {projects.map((entry) => <option value={entry.id} key={entry.id}>{entry.name}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="as-of">Дата отчёта</label>
+                <input
+                  id="as-of" type="date" value={asOf} required min="0001-01-01" max="9999-12-31"
+                  onChange={(event) => setAsOf(event.currentTarget.value)}
+                />
+              </div>
+              <button type="submit">{pending ? 'Обновляем…' : 'Построить отчёт'}</button>
+            </fieldset>
+            {error && <p className="form-error" role="alert">{error}</p>}
+          </form>
+        </div>
 
-      <p className="sr-only" role="status">
-        {pending ? 'Отчёт обновляется' : 'Отчёт на ' + shownDate(report.asOf) + '. ' + report.project.name}
-      </p>
-      <div className="report" aria-busy={pending}>
-        <section aria-labelledby="project-heading">
-          <div className="report-heading">
-            <div>
-              <h2 id="project-heading">{report.project.name}</h2>
-              <p>{report.project.description}</p>
-            </div>
-            <p className="report-date">На <time dateTime={report.asOf}>{shownDate(report.asOf)}</time></p>
+        <div className={'balance' + (isOverBudget ? ' balance-over' : '')} aria-busy={pending}>
+          <p className="report-date">На <time dateTime={report.asOf}>{shownDate(report.asOf)}</time></p>
+          <dl className="balance-total">
+            <dt>{isOverBudget ? 'Сверх бюджета' : 'Остаток бюджета'}</dt>
+            <dd>{rubles(Math.abs(totals.leftKopecks))} <span>₽</span></dd>
+          </dl>
+          <div className="balance-track" aria-hidden="true">
+            <div className="balance-fill" style={{ width: Math.min(spentRatio * 100, 100) + '%' }} />
           </div>
-          <dl className="totals">
+          <dl className="balance-detail">
             <div>
-              <dt>Бюджет проекта</dt>
+              <dt>План</dt>
               <dd>{rubles(totals.budgetKopecks)} <span>₽</span></dd>
             </div>
             <div>
               <dt>Оплачено</dt>
               <dd>{rubles(totals.spentKopecks)} <span>₽</span></dd>
             </div>
-            <div className={totals.leftKopecks < 0 ? 'total-over' : 'total-left'}>
-              <dt>{totals.leftKopecks < 0 ? 'Сверх бюджета' : 'Остаток бюджета'}</dt>
-              <dd>{rubles(Math.abs(totals.leftKopecks))} <span>₽</span></dd>
-            </div>
           </dl>
-        </section>
+        </div>
+      </section>
+      <p className="sr-only" role="status">
+        {pending ? 'Отчёт обновляется' : 'Отчёт на ' + shownDate(report.asOf) + '. ' + report.project.name}
+      </p>
+      <section className="report" aria-busy={pending} aria-labelledby="project-heading">
+        <div className="report-heading">
+          <h2 id="project-heading">{report.project.name}</h2>
+          <p>{report.project.description}</p>
+        </div>
         <section className="breakdown" aria-labelledby="breakdown-heading">
-          <h2 id="breakdown-heading">Расходы по статьям</h2>
+          <h3 id="breakdown-heading">Расходы по статьям</h3>
           {totals.spentKopecks === 0 && <p className="empty">К этой дате у проекта ещё нет оплаченных расходов.</p>}
           <div className="breakdown-grid">
             <ExpenseChart categories={report.categories} />
             <ExpenseTable categories={report.categories} />
           </div>
         </section>
-      </div>
+      </section>
     </>
   )
 }

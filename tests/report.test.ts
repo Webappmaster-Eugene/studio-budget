@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { version } from '../package.json'
 import { GET as health } from '../src/app/api/health/route'
 import { GET } from '../src/app/api/report/route'
 import { initialDate, projects } from '../src/lib/fixtures'
@@ -76,6 +77,6 @@ describe('HTTP API', () => {
   })
 
   it('сообщает версию запущенного приложения', async () => {
-    expect(await health().json()).toEqual({ status: 'ok', version: '1.0.0' })
+    expect(await health().json()).toEqual({ status: 'ok', version })
   })
 })
