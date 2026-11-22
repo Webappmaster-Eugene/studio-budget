@@ -16,8 +16,10 @@ ENV NODE_ENV=production \
     PORT=3000
 WORKDIR /app
 COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --chown=node:node db/migrations ./db/migrations
+COPY --chown=node:node scripts/migrate.mjs scripts/start.mjs ./scripts/
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=15s \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health', { signal: AbortSignal.timeout(2000) }).then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
-CMD ["node", "server.js"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:' + process.env.PORT + '/api/health', { signal: AbortSignal.timeout(2000) }).then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+CMD ["node", "scripts/start.mjs"]

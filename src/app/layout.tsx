@@ -10,8 +10,9 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Бюджет проекта',
-  description: 'Демо отчёта о плане, фактических расходах и остатке бюджета проекта.',
+  title: 'Учёт выплат',
+  description: 'Рабочая область для договоров, работ и платежей.',
+  robots: { index: false, follow: false },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

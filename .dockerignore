@@ -5,3 +5,8 @@
 !pnpm-lock.yaml
 !next.config.ts
 !tsconfig.json
+!db/
+!db/**
+!scripts/
+!scripts/migrate.mjs
+!scripts/start.mjs

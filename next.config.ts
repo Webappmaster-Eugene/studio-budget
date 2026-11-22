@@ -3,6 +3,7 @@ import type { NextConfig } from 'next'
 const config: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  serverExternalPackages: ['pg'],
   experimental: { cpus: 2 },
   async headers() {
     return [{

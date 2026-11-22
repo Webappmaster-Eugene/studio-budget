@@ -1,7 +1,8 @@
 import process from 'node:process'
 import { defineConfig } from '@playwright/test'
 
-const baseURL = process.env.STUDIO_TEST_URL ?? 'http://127.0.0.1:3207'
+const baseURL = process.env.LEDGER_TEST_URL
+if (!baseURL) throw new Error('Set LEDGER_TEST_URL to an isolated test instance')
 
 export default defineConfig({
   testDir: './e2e',
@@ -12,7 +13,4 @@ export default defineConfig({
     locale: 'ru-RU',
     screenshot: 'only-on-failure',
   },
-  webServer: process.env.STUDIO_TEST_URL
-    ? undefined
-    : { command: 'pnpm start', url: baseURL, env: { PORT: '3207' } },
 })

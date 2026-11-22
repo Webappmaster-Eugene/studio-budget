@@ -1,27 +1,12 @@
-import { initialDate, projects } from '@/lib/fixtures'
-import { createReport } from '@/lib/report'
-import { Dashboard } from './dashboard'
+import { hasSession } from '@/lib/auth'
+import { listContracts } from '@/lib/repository'
+import { dateToday } from '@/lib/values'
+import { Login } from './login'
+import { Workspace } from './workspace'
 
-export default function Home() {
-  return (
-    <>
-      <header className="masthead">
-        <div className="frame brand">
-          <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <span>Бюджет проекта</span>
-        </div>
-      </header>
+export const dynamic = 'force-dynamic'
 
-      <main className="frame">
-        <Dashboard
-          projects={projects.map(({ id, name }) => ({ id, name }))}
-          initialReport={createReport(projects[0], initialDate)}
-        />
-      </main>
-
-      <footer className="frame footer">
-        <a href="https://github.com/Webappmaster-Eugene/studio-budget">Исходный код на GitHub</a>
-      </footer>
-    </>
-  )
+export default async function Home() {
+  if (!(await hasSession())) return <Login />
+  return <Workspace initialContracts={await listContracts()} initialDate={dateToday()} />
 }
