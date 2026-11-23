@@ -281,3 +281,72 @@ test('ограничивает попытки входа и размер JSON', 
   const large = await request.post('/api/contracts', { headers, data: { title: 'x'.repeat(70_000) } })
   expect(large.status()).toBe(413)
 })
+
+test('форма входа использует POST до запуска JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ baseURL: origin, javaScriptEnabled: false })
+  try {
+    const page = await context.newPage()
+    await page.goto('/')
+    await expect(page.locator('form').filter({ has: page.getByLabel('Пароль') })).toHaveAttribute('method', 'post')
+  } finally {
+    await context.close()
+  }
+})
+
+test('списки меняют статусы в день события независимо от даты отчёта', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-03-08T12:00:00+03:00'))
+  await loginApi(page.request)
+  const reference = unique()
+  const title = 'Проверка дат ' + reference
+  const created = await page.request.post('/api/contracts', {
+    headers, data: { ...contractBody(reference), title },
+  })
+  expect(created.status()).toBe(201)
+  const contract = await created.json()
+  const path = '/api/contracts/' + contract.id
+  const entry = (name: string) => page.locator('article').filter({ has: page.getByRole('heading', { name, exact: true }) })
+  const openWorks = () => page.getByRole('button', { name: 'Работы', exact: true }).click()
+  const openPayments = () => page.getByRole('button', { name: 'Платежи', exact: true }).click()
+
+  try {
+    for (const work of [
+      { ...workBody, title: 'Будущая приёмка', acceptedOn: '2026-03-09' },
+      { ...workBody, title: 'Будущая отмена', acceptedOn: '2026-03-06', cancelledOn: '2026-03-10' },
+    ]) {
+      expect((await page.request.post(path + '/works', { headers, data: work })).status()).toBe(201)
+    }
+
+    for (const payment of [
+      { ...paymentBody, purpose: 'Будущая оплата', paidOn: '2026-03-09' },
+      { ...paymentBody, purpose: 'Будущий возврат', refundedOn: '2026-03-10', refundedAmount: '100' },
+    ]) {
+      expect((await page.request.post(path + '/payments', { headers, data: payment })).status()).toBe(201)
+    }
+
+    await page.goto('/')
+    await page.getByRole('button', { name: new RegExp(reference) }).click()
+    await page.getByLabel('Отчёт на дату').fill('2026-03-12')
+    await openWorks()
+    await expect(entry('Будущая приёмка').getByText('Плановая', { exact: true })).toBeVisible()
+    await expect(entry('Будущая отмена').getByText('Принята', { exact: true })).toBeVisible()
+    await openPayments()
+    await expect(entry('Будущая оплата').getByText('В очереди', { exact: true })).toBeVisible()
+    await expect(entry('Будущий возврат').getByText('Оплачен', { exact: true })).toBeVisible()
+    await expect(entry('Будущий возврат').getByText('Возврат запланирован')).toBeVisible()
+
+    await page.clock.setFixedTime(new Date('2026-03-09T00:00:00+03:00'))
+    await openWorks()
+    await expect(entry('Будущая приёмка').getByText('Принята', { exact: true })).toBeVisible()
+    await openPayments()
+    await expect(entry('Будущая оплата').getByText('Оплачен', { exact: true })).toBeVisible()
+
+    await page.clock.setFixedTime(new Date('2026-03-10T00:00:00+03:00'))
+    await openWorks()
+    await expect(entry('Будущая отмена').getByText('Отменена', { exact: true })).toBeVisible()
+    await openPayments()
+    await expect(entry('Будущий возврат').getByText('Есть возврат', { exact: true })).toBeVisible()
+    await expect(entry('Будущий возврат').getByText('Возврат запланирован')).toHaveCount(0)
+  } finally {
+    await cleanup(page.request, contract.id)
+  }
+})

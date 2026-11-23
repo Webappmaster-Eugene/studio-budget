@@ -1,14 +1,10 @@
-import type { ContractData, Payment, Statement, Work, WorkBalance, WorkStatus } from './contracts'
-
-function state(work: Work, asOf: string): WorkStatus {
-  if (work.cancelledOn && work.cancelledOn <= asOf) return 'cancelled'
-  if (work.acceptedOn && work.acceptedOn <= asOf) return 'accepted'
-  return 'planned'
-}
+import type { ContractData, Payment, Statement, WorkBalance } from './contracts'
+import { paymentStatusAt, workStatusAt } from './event-status'
 
 function paymentNet(payment: Payment, asOf: string) {
-  if (!payment.paidOn || payment.paidOn > asOf) return 0n
-  const refund = payment.refundedOn && payment.refundedOn <= asOf ? BigInt(payment.refundedAmount ?? '0') : 0n
+  const status = paymentStatusAt(payment, asOf)
+  if (status === 'queued') return 0n
+  const refund = status === 'refunded' ? BigInt(payment.refundedAmount ?? '0') : 0n
   return BigInt(payment.amount) - refund
 }
 
@@ -30,7 +26,7 @@ export function createStatement({ contract, works, payments }: ContractData, asO
   }
 
   const accepted = visible
-    .filter((work) => state(work, asOf) === 'accepted')
+    .filter((work) => workStatusAt(work, asOf) === 'accepted')
     .sort((a, b) => ((a.acceptedOn ?? '') + (a.sourceReference ?? a.id)).localeCompare((b.acceptedOn ?? '') + (b.sourceReference ?? b.id)))
 
   const allocated = new Map<string, bigint>()
@@ -46,7 +42,7 @@ export function createStatement({ contract, works, payments }: ContractData, asO
   let acceptedDue = 0n
   let plannedDue = 0n
   const lines = visible.map((work): WorkBalance => {
-    const status = state(work, asOf)
+    const status = workStatusAt(work, asOf)
     const price = BigInt(work.price)
     const directPaid = direct.get(work.id) ?? 0n
     const allocatedPaid = allocated.get(work.id) ?? 0n

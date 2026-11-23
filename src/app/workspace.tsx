@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import type { Contract, ContractData, Statement } from '@/lib/contracts'
-import { humanMoney } from '@/lib/values'
+import { paymentStatusAt, workStatusAt } from '@/lib/event-status'
+import { dateToday, humanMoney } from '@/lib/values'
 import { ApiError, callApi, message } from './client'
 import { ConfirmDelete, CsvImporter, RecordEditor } from './editor'
 import type { Editor } from './editor'
@@ -18,6 +19,7 @@ const tabs: { id: Tab; label: string }[] = [
 ]
 
 const workStatus = { planned: 'Плановая', accepted: 'Принята', cancelled: 'Отменена' }
+const recordStatus = { ...workStatus, queued: 'В очереди', paid: 'Оплачен', refunded: 'Есть возврат' }
 
 function dateLabel(value: string) {
   const [year, month, day] = value.split('-')
@@ -96,6 +98,7 @@ function Register({ kind, data, edit, remove }: {
   const entries = works ? data.works : data.payments
   const label = works ? 'работу' : 'платёж'
   const titles = new Map(data.works.map((entry) => [entry.id, entry.title]))
+  const today = dateToday()
 
   return (
     <section className="register">
@@ -110,9 +113,7 @@ function Register({ kind, data, edit, remove }: {
         const isWork = 'price' in entry
         const title = isWork ? entry.title : entry.purpose
         const linked = !isWork && entry.workId ? titles.get(entry.workId) : undefined
-        const state = isWork
-          ? (entry.cancelledOn ? 'Отменена' : entry.acceptedOn ? 'Принята' : 'Плановая')
-          : entry.refundedOn ? 'Есть возврат' : entry.paidOn ? 'Оплачен' : 'В очереди'
+        const status = isWork ? workStatusAt(entry, today) : paymentStatusAt(entry, today)
         const action = () => edit(isWork
           ? { kind: 'work', value: entry }
           : { kind: 'payment', value: entry })
@@ -123,9 +124,13 @@ function Register({ kind, data, edit, remove }: {
               <span className="entry-meta">
                 {isWork ? 'Поставлена ' + dateLabel(entry.openedOn) : linked ?? 'К договору целиком'}
               </span>
-              {!isWork && entry.refundedAmount && <small className="notice">Возврат <Money amount={entry.refundedAmount} /></small>}
+              {!isWork && entry.refundedAmount && (
+                <small className="notice">
+                  {status === 'refunded' ? 'Возврат' : 'Возврат запланирован'} <Money amount={entry.refundedAmount} />
+                </small>
+              )}
             </div>
-            <div><Money amount={isWork ? entry.price : entry.amount} /><small className="entry-meta">{state}</small></div>
+            <div><Money amount={isWork ? entry.price : entry.amount} /><small className="entry-meta">{recordStatus[status]}</small></div>
             <div className="entry-actions">
               <button className="secondary" onClick={action} aria-label={'Изменить ' + title}>Изменить</button>
               <button className="danger" onClick={() => remove({

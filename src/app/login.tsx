@@ -30,7 +30,7 @@ export function Login() {
         <h1>Договоры и платежи</h1>
         <p>Ведите работы по договорам и сверяйте выплаты на любую дату.</p>
       </div>
-      <form className="login-card" onSubmit={submit}>
+      <form className="login-card" method="post" onSubmit={submit}>
         <h2>Вход в рабочую область</h2>
         <label>Логин<input name="username" autoComplete="username" maxLength={128} required /></label>
         <label>Пароль<input name="password" type="password" autoComplete="current-password" maxLength={128} required /></label>
